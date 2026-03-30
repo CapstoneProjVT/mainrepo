@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 214 32% 98%;
+  --foreground: 222 34% 14%;
+  --muted: 214 20% 92%;
+  --muted-foreground: 220 14% 40%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 34% 14%;
+  --border: 217 20% 88%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  --accent: 197 90% 48%;
+  --accent-foreground: 224 71% 4%;
+  --danger: 0 84% 60%;
+  --radius-xl: 1rem;
+  --radius-lg: 0.75rem;
+  --radius-md: 0.5rem;
+  --shadow-card: 0 4px 20px -10px rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 2px 10px -5px rgba(30, 41, 59, 0.05);
+}
+
+.dark {
+  --background: 222 47% 7%;
+  --foreground: 214 32% 96%;
+  --muted: 223 35% 12%;
+  --muted-foreground: 215 20% 65%;
+  --card: 223 45% 9%;
+  --card-foreground: 214 32% 96%;
+  --border: 222 30% 18%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 7%;
+  --accent: 190 85% 60%;
+  --accent-foreground: 220 50% 10%;
+  --danger: 0 70% 60%;
+  --shadow-card: 0 10px 30px -15px rgba(0, 0, 0, 0.95);
+  --shadow-soft: 0 5px 15px -10px rgba(0, 0, 0, 0.8);
+}
+
+* { @apply border-border; }
+
+html, body { height: 100%; }
+
+body {
+  @apply bg-background text-foreground antialiased transition-colors duration-200;
+}
+
+/* Subtle background gradient for modern feel */
+.bg-gradient-radial {
+  background-image: radial-gradient(circle at top right, hsl(var(--primary) / 0.05), transparent 30%),
+                    radial-gradient(circle at bottom left, hsl(var(--accent) / 0.05), transparent 30%);
+}
+
+@layer base {
+  h1 { @apply text-3xl font-semibold tracking-tight md:text-3xl; }
+  h2 { @apply text-2xl font-semibold tracking-tight; }
+  h3 { @apply text-lg font-semibold; }
+  p { @apply leading-relaxed; }
+}
+
+@layer utilities {
+  .focus-ring { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background; }
+  
+  /* Hide scrollbar for cleaner nav areas */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
