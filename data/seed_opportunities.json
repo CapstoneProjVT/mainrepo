@@ -1,0 +1,29 @@
+[
+  {
+    "title": "Software Engineering Intern",
+    "org": "Acme Robotics",
+    "description": "Build backend APIs in Python and FastAPI, work with PostgreSQL and Docker.",
+    "location": "Remote",
+    "tags": ["python", "fastapi", "postgres", "docker"],
+    "deadline": "2026-03-31",
+    "url": "https://acme.example/jobs/se-intern"
+  },
+  {
+    "title": "Data Science Intern",
+    "org": "Insight Labs",
+    "description": "Analyze datasets using pandas and SQL, create dashboards and communicate findings.",
+    "location": "New York, NY",
+    "tags": ["python", "sql", "pandas", "analytics"],
+    "deadline": "2026-04-15",
+    "url": "https://insight.example/jobs/ds-intern"
+  },
+  {
+    "title": "Frontend Intern",
+    "org": "Pixel Cloud",
+    "description": "Create polished interfaces in React and TypeScript, improve UX and accessibility.",
+    "location": "San Francisco, CA",
+    "tags": ["react", "typescript", "frontend", "accessibility"],
+    "deadline": "2026-04-10",
+    "url": "https://pixel.example/jobs/frontend-intern"
+  }
+]
