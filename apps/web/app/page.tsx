@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
+import { InteractiveGlobe } from '../components/ui/InteractiveGlobe'
 
 export default function LandingPage() {
     const router = useRouter()
@@ -24,27 +25,43 @@ export default function LandingPage() {
     return (
         <div className='min-h-screen'>
             {/* Hero Section */}
-            <section className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center'>
-                <h1 className='text-5xl sm:text-6xl font-bold tracking-tight text-foreground mb-6'>
-                    Find Your Perfect{' '}
-                    <span className='bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent'>
-                        Internship
-                    </span>
-                </h1>
-                <p className='text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed'>
-                    AI-powered matching helps you discover internship opportunities that align with your skills and goals. Track applications, prepare for interviews, and land your dream role.
-                </p>
-                <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-                    <Link href='/signup'>
-                        <Button size='lg' className='text-lg px-8'>
-                            Start Free
-                        </Button>
-                    </Link>
-                    <Link href='/login'>
-                        <Button size='lg' variant='outline' className='text-lg px-8'>
-                            Sign In
-                        </Button>
-                    </Link>
+            <section className='px-4 sm:px-6 lg:px-8 py-12 sm:py-20 flex justify-center max-w-[90rem] mx-auto'>
+                <div className="w-full rounded-3xl border border-border/50 bg-card/40 overflow-hidden relative shadow-2xl backdrop-blur-sm">
+                    {/* Ambient glows */}
+                    <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/20 blur-[100px] pointer-events-none" />
+                    <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-primary/20 blur-[100px] pointer-events-none" />
+
+                    <div className="flex flex-col lg:flex-row min-h-[600px] items-center">
+                        {/* Left content */}
+                        <div className="flex-1 flex flex-col justify-center p-8 sm:p-12 lg:p-16 relative z-10 w-full">
+                            <h1 className='text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.1] mb-6'>
+                                Find Your Perfect{' '}
+                                <span className='bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent'>
+                                    Internship
+                                </span>
+                            </h1>
+                            <p className='text-xl md:text-2xl text-muted-foreground max-w-2xl mb-10 leading-relaxed font-medium'>
+                                AI-powered matching helps you discover internship opportunities that align with your skills and goals. Track applications, prepare for interviews, and land your dream role.
+                            </p>
+                            <div className='flex flex-col sm:flex-row gap-5'>
+                                <Link href='/signup'>
+                                    <Button size='lg' className='text-lg px-8 h-14 rounded-full'>
+                                        Start Free
+                                    </Button>
+                                </Link>
+                                <Link href='/login'>
+                                    <Button size='lg' variant='outline' className='text-lg px-8 h-14 rounded-full bg-background/50 backdrop-blur-md hover:bg-background/80'>
+                                        Sign In
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Right — Globe */}
+                        <div className="flex-1 flex items-center justify-center p-4 lg:p-8 min-h-[400px] lg:min-h-[600px] w-full relative">
+                            <InteractiveGlobe size={500} dotColor="rgba(100, 180, 255, ALPHA)" arcColor="rgba(100, 180, 255, 0.5)" markerColor="rgba(100, 220, 255, 1)" />
+                        </div>
+                    </div>
                 </div>
             </section>
 
