@@ -47,6 +47,8 @@ class AppIn(BaseModel):
 
 
 class AppPatch(BaseModel):
+    title_snapshot: Optional[str] = None
+    org_snapshot: Optional[str] = None
     notes: Optional[str] = None
     deadline: Optional[date] = None
     date_applied: Optional[date] = None
