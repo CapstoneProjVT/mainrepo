@@ -12,22 +12,38 @@ from app.routers.admin import seed_if_empty
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Startup — wrapped in try/except so Vercel serverless doesn't crash
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-    if os.getenv("AUTO_SEED", "false").lower() == "true":
-        async with SessionLocal() as session:
-            await seed_if_empty(session)
+        if os.getenv("AUTO_SEED", "false").lower() == "true":
+            async with SessionLocal() as session:
+                await seed_if_empty(session)
+    except Exception as e:
+        import logging
+        logging.warning(f"Lifespan startup error (may be expected on serverless): {e}")
     
     yield
     # Shutdown (nothing needed)
 
 
 app = FastAPI(title="InternAtlas API", lifespan=lifespan)
+_allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+# Add Vercel frontend origin if set, otherwise allow all .vercel.app origins
+_vercel_url = os.getenv("VERCEL_URL")  # auto-set by Vercel
+_frontend_url = os.getenv("FRONTEND_URL")  # explicit override
+if _frontend_url:
+    _allowed_origins.append(_frontend_url)
+if _vercel_url:
+    _allowed_origins.append(f"https://{_vercel_url}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=_allowed_origins if _frontend_url or _vercel_url else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
