@@ -4,10 +4,10 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 from app.models.base import Base
 from app.models import models  # noqa: F401
+from app.core.settings import settings
 
 config = context.config
-if os.getenv("SYNC_DATABASE_URL"):
-    config.set_main_option("sqlalchemy.url", os.getenv("SYNC_DATABASE_URL"))
+config.set_main_option("sqlalchemy.url", settings.sync_database_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
