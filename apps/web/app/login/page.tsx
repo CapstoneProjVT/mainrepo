@@ -55,7 +55,6 @@ function LoginContent() {
       </div>
 
       <Button
-        className='w-full'
         onClick={async () => {
           try {
             await api.login({ email, password })
@@ -71,7 +70,7 @@ function LoginContent() {
         Login
       </Button>
 
-      <Link href='/signup' className='block pt-1 text-sm text-primary underline'>
+      <Link href='/signup' className='text-sm text-primary underline'>
         New account?
       </Link>
 

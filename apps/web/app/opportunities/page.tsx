@@ -220,8 +220,8 @@ export default function Opportunities() {
   }
 
   const detailContent = selectedItem ? (
-    <div className="relative flex flex-col h-[calc(100vh-140px)]">
-      <div className="flex-1 overflow-y-auto pr-2">
+    <div className="flex flex-col h-[calc(100vh-140px)]">
+      <div className="flex-1 overflow-y-auto pr-2 pb-24">
         <h2 className='text-2xl font-bold tracking-tight mb-2'>{selectedItem.title}</h2>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-6 text-sm text-muted-foreground font-medium">
           <span className="text-foreground">{selectedItem.org}</span>
@@ -282,7 +282,7 @@ export default function Opportunities() {
       </div>
 
       {/* Sticky Action Card */}
-      <div className="sticky bottom-0 mt-2 bg-card/95 backdrop-blur shadow-soft border rounded-xl p-4 flex flex-col gap-3">
+      <div className="absolute bottom-4 left-4 right-4 bg-card/95 backdrop-blur shadow-soft border rounded-xl p-4 flex flex-col gap-3">
         <div className="flex gap-2 w-full flex-wrap">
           <Button
             className="flex-1 font-semibold shadow-sm"
