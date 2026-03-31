@@ -1,4 +1,4 @@
-# InternAtlas
+# InternAtlas 
 
 InternAtlas is a capstone app with a Next.js frontend, FastAPI backend, and Postgres + pgvector.
 
