@@ -48,32 +48,7 @@ export default function Tracker() {
         ))}
       </div>
       <Modal open={Boolean(editing)} title='Edit tracker item' onClose={() => setEditing(null)}>
-        {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { title_snapshot: form.get('title_snapshot'), org_snapshot: form.get('org_snapshot'), notes: form.get('notes'), deadline: form.get('deadline') || null, date_applied: form.get('date_applied') || null }); toast('Tracker item updated'); setEditing(null); load() }}>
-          <div className='space-y-1'>
-            <label htmlFor='title_snapshot' className='text-sm font-medium'>Application title</label>
-            <Input id='title_snapshot' name='title_snapshot' defaultValue={editing.title_snapshot || ''} placeholder='Application title' />
-          </div>
-          <div className='space-y-1'>
-            <label htmlFor='org_snapshot' className='text-sm font-medium'>Company</label>
-            <Input id='org_snapshot' name='org_snapshot' defaultValue={editing.org_snapshot || ''} placeholder='Company name' />
-          </div>
-          <div className='space-y-1'>
-            <label htmlFor='notes' className='text-sm font-medium'>Notes</label>
-            <Textarea id='notes' name='notes' defaultValue={editing.notes || ''} placeholder='Notes' />
-          </div>
-          <div className='space-y-1'>
-            <label htmlFor='deadline' className='text-sm font-medium'>Deadline</label>
-            <Input id='deadline' type='date' name='deadline' defaultValue={editing.deadline_date || ''} />
-          </div>
-          <div className='space-y-1'>
-            <label htmlFor='date_applied' className='text-sm font-medium'>Date applied</label>
-            <Input id='date_applied' type='date' name='date_applied' defaultValue={editing.date_applied || ''} />
-          </div>
-          <div className='flex gap-2'>
-            <Button type='submit'>Save</Button>
-            <Button type='button' variant='danger' onClick={async () => { await api.trackerDelete(editing.id); toast('Tracker item deleted'); setEditing(null); load() }}>Delete</Button>
-          </div>
-        </form> : null}
+        {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { notes: form.get('notes'), deadline: form.get('deadline') || null, date_applied: form.get('date_applied') || null }); toast('Tracker item updated'); setEditing(null); load() }}><Textarea name='notes' defaultValue={editing.notes || ''} placeholder='Notes' /><Input type='date' name='deadline' defaultValue={editing.deadline_date || ''} /><Input type='date' name='date_applied' defaultValue={editing.date_applied || ''} /><div className='flex gap-2'><Button type='submit'>Save</Button><Button type='button' variant='danger' onClick={async () => { await api.trackerDelete(editing.id); toast('Tracker item deleted'); setEditing(null); load() }}>Delete</Button></div></form> : null}
       </Modal>
     </div>
   )
