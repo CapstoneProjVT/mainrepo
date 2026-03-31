@@ -65,6 +65,16 @@ async def patch_app(app_id: int, payload: AppPatch, user=Depends(get_current_use
     a = (await db.execute(select(Application).where(Application.id == app_id, Application.user_id == user.id))).scalar_one_or_none()
     if not a:
         raise HTTPException(404)
+    if payload.title_snapshot is not None:
+        title = payload.title_snapshot.strip()
+        if not title:
+            raise HTTPException(status_code=422, detail="title_snapshot cannot be empty")
+        a.title_snapshot = title
+    if payload.org_snapshot is not None:
+        org = payload.org_snapshot.strip()
+        if not org:
+            raise HTTPException(status_code=422, detail="org_snapshot cannot be empty")
+        a.org_snapshot = org
     if payload.notes is not None:
         a.notes = payload.notes
     if payload.deadline is not None:
