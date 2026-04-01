@@ -39,9 +39,14 @@
   --shadow-soft: 0 5px 15px -10px rgba(0, 0, 0, 0.8);
 }
 
-* { @apply border-border; }
+* {
+  @apply border-border;
+}
 
-html, body { height: 100%; }
+html,
+body {
+  height: 100%;
+}
 
 body {
   @apply bg-background text-foreground antialiased transition-colors duration-200;
@@ -50,25 +55,49 @@ body {
 /* Subtle background gradient for modern feel */
 .bg-gradient-radial {
   background-image: radial-gradient(circle at top right, hsl(var(--primary) / 0.05), transparent 30%),
-                    radial-gradient(circle at bottom left, hsl(var(--accent) / 0.05), transparent 30%);
+    radial-gradient(circle at bottom left, hsl(var(--accent) / 0.05), transparent 30%);
 }
 
 @layer base {
-  h1 { @apply text-3xl font-semibold tracking-tight md:text-3xl; }
-  h2 { @apply text-2xl font-semibold tracking-tight; }
-  h3 { @apply text-lg font-semibold; }
-  p { @apply leading-relaxed; }
+  h1 {
+    @apply text-3xl font-semibold tracking-tight md:text-3xl;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-lg font-semibold;
+  }
+
+  p {
+    @apply leading-relaxed;
+  }
 }
 
 @layer utilities {
-  .focus-ring { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background; }
-  
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
   /* Hide scrollbar for cleaner nav areas */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+/* Hide browser default password toggle */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-password-toggle-button {
+  display: none;
 }
