@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export function UserMenu({ isAdmin }: { isAdmin: boolean }) {
   const [open, setOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <div className='relative'>
@@ -18,12 +20,18 @@ export function UserMenu({ isAdmin }: { isAdmin: boolean }) {
 
       {open && (
         <div className='absolute right-0 mt-2 w-48 rounded-xl border bg-card p-2 shadow-lg'>
-          <Link href='/settings' className='block rounded-md px-3 py-2 text-sm hover:bg-muted'>
+          <Link
+            href='/settings'
+            className='block rounded-md px-3 py-2 text-sm hover:bg-muted'
+          >
             Settings
           </Link>
 
           {isAdmin && (
-            <Link href='/admin' className='block rounded-md px-3 py-2 text-sm hover:bg-muted'>
+            <Link
+              href='/admin'
+              className='block rounded-md px-3 py-2 text-sm hover:bg-muted'
+            >
               Admin
             </Link>
           )}
@@ -31,7 +39,9 @@ export function UserMenu({ isAdmin }: { isAdmin: boolean }) {
           <button
             onClick={() => {
               localStorage.removeItem('isLoggedIn')
-              window.location.href = '/opportunities'
+              localStorage.removeItem('userEmail')
+              setOpen(false)
+              router.replace('/login')
             }}
             className='mt-1 w-full rounded-md px-3 py-2 text-left text-sm hover:bg-muted'
           >

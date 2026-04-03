@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
 import { useToast } from '../../components/ui/Toast'
+import { useRouter } from 'next/navigation'
 
 function PasswordField({
   label,
@@ -45,6 +46,7 @@ function PasswordField({
 }
 
 export default function SettingsPage() {
+  const router = useRouter()
   const MIN_PASSWORD_LENGTH = 6
 
   const [email, setEmail] = useState('')
@@ -88,7 +90,7 @@ export default function SettingsPage() {
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('userEmail')
-    window.location.href = '/opportunities'
+    router.replace('/login')
   }
 
   return (
