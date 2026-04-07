@@ -74,6 +74,7 @@ export default function Tracker() {
             <Button type='button' variant='danger' onClick={async () => { await api.trackerDelete(editing.id); toast('Tracker item deleted'); setEditing(null); load() }}>Delete</Button>
           </div>
         </form> : null}
+      </Modal>
     </div>
   )
 }
