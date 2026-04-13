@@ -92,7 +92,7 @@ export default function Tracker() {
                   ) : null}
                   <div className='flex gap-2'>
                     {item.url_snapshot ? (
-                      <Button size='sm' variant='secondary' asChild>
+                      <Button size='sm' variant='secondary'>
                         <a href={item.url_snapshot} target='_blank' rel='noreferrer'>Job posting</a>
                       </Button>
                     ) : (
