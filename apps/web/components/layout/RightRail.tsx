@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Card } from '../ui/Card'
 import { Button } from '../ui/Button'
 
@@ -25,7 +26,7 @@ export function RightRail() {
                         <span>Keep applying to improve confidence.</span>
                     </li>
                 </ul>
-                <Button variant="outline" className="w-full mt-4 text-xs font-medium h-8">View Detailed Stats</Button>
+                <Link href="/tracker"><Button variant="outline" className="w-full mt-4 text-xs font-medium h-8">View Detailed Stats</Button></Link>
             </Card>
 
             <Card className='p-5 shadow-sm bg-card border-border'>
