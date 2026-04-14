@@ -7,6 +7,7 @@ import { Card } from '../../components/ui/Card'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
+import { Select } from '../../components/ui/Select'
 import { Textarea } from '../../components/ui/Textarea'
 import { useToast } from '../../components/ui/Toast'
 
@@ -15,7 +16,6 @@ const stages = ['Interested', 'Applied', 'OA', 'Interview', 'Offer', 'Rejected']
 export default function Tracker() {
   const [apps, setApps] = useState<any[]>([])
   const [editing, setEditing] = useState<any | null>(null)
-  const [expandedId, setExpandedId] = useState<number | null>(null)
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [dragOverStage, setDragOverStage] = useState<string | null>(null)
   const toast = useToast()
@@ -26,7 +26,10 @@ export default function Tracker() {
 
   const formatDate = (value?: string | null) => {
     if (!value) return 'No deadline'
-    const date = new Date(value)
+    const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    const date = dateOnlyMatch
+      ? new Date(Number(dateOnlyMatch[1]), Number(dateOnlyMatch[2]) - 1, Number(dateOnlyMatch[3]))
+      : new Date(value)
     if (Number.isNaN(date.getTime())) return value
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
   }
@@ -83,25 +86,20 @@ export default function Tracker() {
                 >
                   <p className='font-medium'>{item.title_snapshot}</p>
                   <p className='text-xs text-muted-foreground'>{item.org_snapshot}</p>
-                  <p className='text-xs text-muted-foreground'>Deadline: {formatDate(item.deadline_date ?? item.deadline)}</p>
-                  {expandedId === item.id ? (
-                    <div className='space-y-1 rounded border border-dashed p-2 text-xs text-muted-foreground'>
-                      <p>Date applied: {formatDate(item.date_applied)}</p>
-                      <p>Notes: {item.notes?.trim() ? item.notes : 'No notes'}</p>
-                    </div>
-                  ) : null}
+                  <p className='text-xs text-muted-foreground'>Due: {formatDate(item.deadline_date ?? item.deadline)}</p>
                   <div className='flex gap-2'>
-                    {item.url_snapshot ? (
-                      <Button size='sm' variant='secondary'>
-                        <a href={item.url_snapshot} target='_blank' rel='noreferrer'>Job posting</a>
-                      </Button>
-                    ) : (
-                      <Button size='sm' variant='secondary' disabled>Job posting</Button>
-                    )}
-                    <Button size='sm' variant='secondary' onClick={() => setExpandedId((current) => current === item.id ? null : item.id)}>
-                      {expandedId === item.id ? 'Hide details' : 'Details'}
+                    <Button
+                      size='sm'
+                      variant='secondary'
+                      disabled={!item.url_snapshot}
+                      onClick={() => {
+                        if (!item.url_snapshot) return
+                        window.open(item.url_snapshot, '_blank', 'noopener,noreferrer')
+                      }}
+                    >
+                      Posting
                     </Button>
-                    <Button size='sm' onClick={() => setEditing(item)}>Edit</Button>
+                    <Button size='sm' onClick={() => setEditing(item)}>Details</Button>
                   </div>
                 </div>
               ))}
@@ -109,8 +107,8 @@ export default function Tracker() {
           </Card>
         ))}
       </div>
-      <Modal open={Boolean(editing)} title='Edit tracker item' onClose={() => setEditing(null)}>
-        {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { title_snapshot: form.get('title_snapshot'), org_snapshot: form.get('org_snapshot'), url_snapshot: form.get('url_snapshot'), notes: form.get('notes'), deadline: form.get('deadline') || null, date_applied: form.get('date_applied') || null }); toast('Tracker item updated'); setEditing(null); load() }}>
+      <Modal open={Boolean(editing)} title='Application details' onClose={() => setEditing(null)}>
+        {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { title_snapshot: form.get('title_snapshot'), org_snapshot: form.get('org_snapshot'), url_snapshot: form.get('url_snapshot'), stage: form.get('stage'), notes: form.get('notes'), deadline: form.get('deadline') || null, date_applied: form.get('date_applied') || null }); toast('Tracker item updated'); setEditing(null); load() }}>
           <div className='space-y-1'>
             <label htmlFor='title_snapshot' className='text-sm font-medium'>Application title</label>
             <Input id='title_snapshot' name='title_snapshot' defaultValue={editing.title_snapshot || ''} placeholder='Application title' />
@@ -118,6 +116,12 @@ export default function Tracker() {
           <div className='space-y-1'>
             <label htmlFor='org_snapshot' className='text-sm font-medium'>Company</label>
             <Input id='org_snapshot' name='org_snapshot' defaultValue={editing.org_snapshot || ''} placeholder='Company name' />
+          </div>
+          <div className='space-y-1'>
+            <label htmlFor='stage' className='text-sm font-medium'>Stage</label>
+            <Select id='stage' name='stage' defaultValue={editing.stage || 'Interested'}>
+              {stages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
+            </Select>
           </div>
           <div className='space-y-1'>
             <label htmlFor='url_snapshot' className='text-sm font-medium'>Job posting URL</label>

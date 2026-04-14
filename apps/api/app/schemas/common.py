@@ -50,6 +50,7 @@ class AppPatch(BaseModel):
     title_snapshot: Optional[str] = None
     org_snapshot: Optional[str] = None
     url_snapshot: Optional[str] = None
+    stage: Optional[StageEnum] = None
     notes: Optional[str] = None
     deadline: Optional[date] = None
     date_applied: Optional[date] = None
