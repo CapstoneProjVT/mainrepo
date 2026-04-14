@@ -4,10 +4,14 @@ from app.core.settings import settings
 
 _connect_args: dict = {}
 if settings.database_url.startswith("postgresql"):
-    _ssl_ctx = _ssl.create_default_context()
-    _ssl_ctx.check_hostname = False
-    _ssl_ctx.verify_mode = _ssl.CERT_NONE
-    _connect_args = {"ssl": _ssl_ctx, "statement_cache_size": 0}
+    _local_hosts = ("@db:", "@localhost:", "@127.0.0.1:")
+    if any(host in settings.database_url for host in _local_hosts):
+        _connect_args = {"statement_cache_size": 0}
+    else:
+        _ssl_ctx = _ssl.create_default_context()
+        _ssl_ctx.check_hostname = False
+        _ssl_ctx.verify_mode = _ssl.CERT_NONE
+        _connect_args = {"ssl": _ssl_ctx, "statement_cache_size": 0}
 
 engine = create_async_engine(
     settings.database_url,
