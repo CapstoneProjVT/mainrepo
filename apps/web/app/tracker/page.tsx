@@ -24,7 +24,15 @@ export default function Tracker() {
   const load = () => api.trackerList().then(setApps)
   useEffect(() => { load() }, [])
 
-  const grouped = useMemo(() => stages.map((stage) => ({ stage, items: apps.filter((app) => app.stage === stage) })), [apps])
+  const sortApps = (items: any[]) => [...items].sort((a, b) => {
+    const dateA = a.deadline_date ?? a.deadline
+    const dateB = b.deadline_date ?? b.deadline
+    if (dateA && dateB) return new Date(dateA).getTime() - new Date(dateB).getTime()
+    if (dateA) return -1
+    if (dateB) return 1
+    return (a.title_snapshot ?? '').localeCompare(b.title_snapshot ?? '')
+  })
+  const grouped = useMemo(() => stages.map((stage) => ({ stage, items: sortApps(apps.filter((app) => app.stage === stage)) })), [apps])
 
   const formatDate = (value?: string | null) => {
     if (!value) return 'No deadline'
@@ -46,7 +54,7 @@ export default function Tracker() {
     <div className='space-y-4'>
       <div className='flex items-center justify-between'>
         <h1>Application tracker</h1>
-        <Button onClick={async () => { await api.trackerCreate({ title_snapshot: 'New application', org_snapshot: 'Company', stage: 'Interested' }); toast('Application created'); load() }}>Add application</Button>
+        <Button onClick={async () => { const created = await api.trackerCreate({ title_snapshot: 'New application', org_snapshot: 'Company', stage: 'Interested' }); await load(); setEditing(created) }}>Add application</Button>
       </div>
       <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
         {grouped.map((column) => (
@@ -90,7 +98,7 @@ export default function Tracker() {
                     <p className='font-medium'>{item.title_snapshot}</p>
                     <p className='text-xs text-muted-foreground'>{item.org_snapshot}</p>
                     <p className='text-xs text-muted-foreground'>Due: {formatDate(item.deadline_date ?? item.deadline)}</p>
-                    <div className='flex gap-2'>
+                    <div className='flex items-center gap-2'>
                       <Button
                         size='sm'
                         variant='secondary'
@@ -100,9 +108,10 @@ export default function Tracker() {
                           window.open(item.url_snapshot, '_blank', 'noopener,noreferrer')
                         }}
                       >
-                        Posting
+                        URL
                       </Button>
                       <Button size='sm' onClick={() => setEditing(item)}>Details</Button>
+                      <span className='ml-auto cursor-grab active:cursor-grabbing select-none text-lg text-muted-foreground hover:text-foreground' title='Drag to move'>⠿</span>
                     </div>
                   </div>
                 ))}</div>{column.items.length > 3 && (<button type='button' className='w-full pt-1 text-xs text-muted-foreground hover:text-foreground' onClick={() => toggleExpand(column.stage)}>{isExpanded ? 'See less' : `See ${hiddenCount} more`}</button>)}</>)
@@ -112,7 +121,7 @@ export default function Tracker() {
         ))}
       </div>
       <Modal open={Boolean(editing)} title='Application details' onClose={() => setEditing(null)}>
-        {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { title_snapshot: form.get('title_snapshot'), org_snapshot: form.get('org_snapshot'), url_snapshot: form.get('url_snapshot'), stage: form.get('stage'), notes: form.get('notes'), deadline: form.get('deadline') || null }); toast('Tracker item updated'); setEditing(null); await load() }}>
+        {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { title_snapshot: form.get('title_snapshot'), org_snapshot: form.get('org_snapshot'), url_snapshot: form.get('url_snapshot'), stage: form.get('stage'), notes: form.get('notes'), deadline: form.get('deadline') || null }); await load(); setEditing(null); toast('Tracker item updated') }}>
           <div className='space-y-1'>
             <label htmlFor='title_snapshot' className='text-sm font-medium'>Application title</label>
             <Input id='title_snapshot' name='title_snapshot' defaultValue={editing.title_snapshot || ''} placeholder='Application title' />
