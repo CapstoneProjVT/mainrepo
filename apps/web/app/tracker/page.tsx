@@ -51,74 +51,76 @@ export default function Tracker() {
   }
 
   return (
-    <div className='space-y-4'>
-      <div className='flex items-center justify-between'>
-        <h1>Application tracker</h1>
-        <Button onClick={async () => { const created = await api.trackerCreate({ title_snapshot: 'New application', org_snapshot: 'Company', stage: 'Interested' }); await load(); setEditing(created) }}>Add application</Button>
-      </div>
-      <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
-        {grouped.map((column) => (
-          <Card
-            key={column.stage}
-            className={dragOverStage === column.stage ? 'ring-2 ring-primary' : ''}
-            onDragOver={(e) => {
-              e.preventDefault()
-              if (dragOverStage !== column.stage) setDragOverStage(column.stage)
-            }}
-            onDragLeave={() => setDragOverStage((current) => current === column.stage ? null : current)}
-            onDrop={async (e) => {
-              e.preventDefault()
-              const droppedId = Number(e.dataTransfer.getData('text/plain'))
-              setDragOverStage(null)
-              setDraggingId(null)
-              if (!droppedId) return
-              const item = apps.find((app) => app.id === droppedId)
-              if (!item || item.stage === column.stage) return
-              await moveToStage(droppedId, column.stage)
-            }}
-          >
-            <h3 className='mb-3'>{column.stage}</h3>
-            <div className='space-y-2'>
-              {column.items.length === 0 ? <EmptyState title='No cards' description='Move an opportunity into this stage.' /> : (() => {
-                const isExpanded = expandedStages.has(column.stage); const visibleItems = isExpanded ? column.items : column.items.slice(0, 3); const hiddenCount = column.items.length - 3; return (<><div className='space-y-2'>{visibleItems.map((item) => (
-                  <div
-                    key={item.id}
-                    draggable
-                    onDragStart={(e) => {
-                      setDraggingId(item.id)
-                      e.dataTransfer.effectAllowed = 'move'
-                      e.dataTransfer.setData('text/plain', String(item.id))
-                    }}
-                    onDragEnd={() => {
-                      setDraggingId(null)
-                      setDragOverStage(null)
-                    }}
-                    className={`space-y-2 rounded-lg border bg-background p-3 ${draggingId === item.id ? 'opacity-60' : ''}`}
-                  >
-                    <p className='font-medium'>{item.title_snapshot}</p>
-                    <p className='text-xs text-muted-foreground'>{item.org_snapshot}</p>
-                    <p className='text-xs text-muted-foreground'>Due: {formatDate(item.deadline_date ?? item.deadline)}</p>
-                    <div className='flex items-center gap-2'>
-                      <Button
-                        size='sm'
-                        variant='secondary'
-                        disabled={!item.url_snapshot}
-                        onClick={() => {
-                          if (!item.url_snapshot) return
-                          window.open(item.url_snapshot, '_blank', 'noopener,noreferrer')
-                        }}
-                      >
-                        URL
-                      </Button>
-                      <Button size='sm' onClick={() => setEditing(item)}>Details</Button>
-                      <span className='ml-auto cursor-grab active:cursor-grabbing select-none text-lg text-muted-foreground hover:text-foreground' title='Drag to move'>⠿</span>
+    <>
+      <div className='space-y-4'>
+        <div className='flex items-center justify-between'>
+          <h1>Application tracker</h1>
+          <Button onClick={async () => { const created = await api.trackerCreate({ title_snapshot: 'New application', org_snapshot: 'Company', stage: 'Interested' }); await load(); setEditing(created) }}>Add application</Button>
+        </div>
+        <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
+          {grouped.map((column) => (
+            <Card
+              key={column.stage}
+              className={dragOverStage === column.stage ? 'ring-2 ring-primary' : ''}
+              onDragOver={(e) => {
+                e.preventDefault()
+                if (dragOverStage !== column.stage) setDragOverStage(column.stage)
+              }}
+              onDragLeave={() => setDragOverStage((current) => current === column.stage ? null : current)}
+              onDrop={async (e) => {
+                e.preventDefault()
+                const droppedId = Number(e.dataTransfer.getData('text/plain'))
+                setDragOverStage(null)
+                setDraggingId(null)
+                if (!droppedId) return
+                const item = apps.find((app) => app.id === droppedId)
+                if (!item || item.stage === column.stage) return
+                await moveToStage(droppedId, column.stage)
+              }}
+            >
+              <h3 className='mb-3'>{column.stage}</h3>
+              <div className='space-y-2'>
+                {column.items.length === 0 ? <EmptyState title='No cards' description='Move an opportunity into this stage.' /> : (() => {
+                  const isExpanded = expandedStages.has(column.stage); const visibleItems = isExpanded ? column.items : column.items.slice(0, 3); const hiddenCount = column.items.length - 3; return (<><div className='space-y-2'>{visibleItems.map((item) => (
+                    <div
+                      key={item.id}
+                      draggable
+                      onDragStart={(e) => {
+                        setDraggingId(item.id)
+                        e.dataTransfer.effectAllowed = 'move'
+                        e.dataTransfer.setData('text/plain', String(item.id))
+                      }}
+                      onDragEnd={() => {
+                        setDraggingId(null)
+                        setDragOverStage(null)
+                      }}
+                      className={`space-y-2 rounded-lg border bg-background p-3 ${draggingId === item.id ? 'opacity-60' : ''}`}
+                    >
+                      <p className='font-medium'>{item.title_snapshot}</p>
+                      <p className='text-xs text-muted-foreground'>{item.org_snapshot}</p>
+                      <p className='text-xs text-muted-foreground'>Due: {formatDate(item.deadline_date ?? item.deadline)}</p>
+                      <div className='flex items-center gap-2'>
+                        <Button
+                          size='sm'
+                          variant='secondary'
+                          disabled={!item.url_snapshot}
+                          onClick={() => {
+                            if (!item.url_snapshot) return
+                            window.open(item.url_snapshot, '_blank', 'noopener,noreferrer')
+                          }}
+                        >
+                          URL
+                        </Button>
+                        <Button size='sm' onClick={() => setEditing(item)}>Details</Button>
+                        <span className='ml-auto cursor-grab active:cursor-grabbing select-none text-lg text-muted-foreground hover:text-foreground' title='Drag to move'>⠿</span>
+                      </div>
                     </div>
-                  </div>
-                ))}</div>{column.items.length > 3 && (<button type='button' className='w-full pt-1 text-xs text-muted-foreground hover:text-foreground' onClick={() => toggleExpand(column.stage)}>{isExpanded ? 'See less' : `See ${hiddenCount} more`}</button>)}</>)
-              })()}
-            </div>
-          </Card>
-        ))}
+                  ))}</div>{column.items.length > 3 && (<button type='button' className='w-full pt-1 text-xs text-muted-foreground hover:text-foreground' onClick={() => toggleExpand(column.stage)}>{isExpanded ? 'See less' : `See ${hiddenCount} more`}</button>)}</>)
+                })()}
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
       <Modal open={Boolean(editing)} title='Application details' onClose={() => setEditing(null)}>
         {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { title_snapshot: form.get('title_snapshot'), org_snapshot: form.get('org_snapshot'), url_snapshot: form.get('url_snapshot'), stage: form.get('stage'), notes: form.get('notes'), deadline: form.get('deadline') || null }); await load(); setEditing(null); toast('Tracker item updated') }}>
@@ -154,6 +156,6 @@ export default function Tracker() {
           </div>
         </form> : null}
       </Modal>
-    </div>
+    </>
   )
 }
