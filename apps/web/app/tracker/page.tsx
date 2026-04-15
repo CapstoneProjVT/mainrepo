@@ -108,7 +108,7 @@ export default function Tracker() {
         ))}
       </div>
       <Modal open={Boolean(editing)} title='Application details' onClose={() => setEditing(null)}>
-        {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { title_snapshot: form.get('title_snapshot'), org_snapshot: form.get('org_snapshot'), url_snapshot: form.get('url_snapshot'), stage: form.get('stage'), notes: form.get('notes'), deadline: form.get('deadline') || null, date_applied: form.get('date_applied') || null }); toast('Tracker item updated'); setEditing(null); load() }}>
+        {editing ? <form className='space-y-3' onSubmit={async (e) => { e.preventDefault(); const form = new FormData(e.currentTarget); await api.trackerPatch(editing.id, { title_snapshot: form.get('title_snapshot'), org_snapshot: form.get('org_snapshot'), url_snapshot: form.get('url_snapshot'), stage: form.get('stage'), notes: form.get('notes'), deadline: form.get('deadline') || null }); toast('Tracker item updated'); setEditing(null); await load() }}>
           <div className='space-y-1'>
             <label htmlFor='title_snapshot' className='text-sm font-medium'>Application title</label>
             <Input id='title_snapshot' name='title_snapshot' defaultValue={editing.title_snapshot || ''} placeholder='Application title' />
@@ -116,16 +116,6 @@ export default function Tracker() {
           <div className='space-y-1'>
             <label htmlFor='org_snapshot' className='text-sm font-medium'>Company</label>
             <Input id='org_snapshot' name='org_snapshot' defaultValue={editing.org_snapshot || ''} placeholder='Company name' />
-          </div>
-          <div className='space-y-1'>
-            <label htmlFor='stage' className='text-sm font-medium'>Stage</label>
-            <Select id='stage' name='stage' defaultValue={editing.stage || 'Interested'}>
-              {stages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
-            </Select>
-          </div>
-          <div className='space-y-1'>
-            <label htmlFor='url_snapshot' className='text-sm font-medium'>Job posting URL</label>
-            <Input id='url_snapshot' name='url_snapshot' type='url' defaultValue={editing.url_snapshot || ''} placeholder='https://company.com/jobs/123' />
           </div>
           <div className='space-y-1'>
             <label htmlFor='notes' className='text-sm font-medium'>Notes</label>
@@ -136,12 +126,18 @@ export default function Tracker() {
             <Input id='deadline' type='date' name='deadline' defaultValue={editing.deadline_date || ''} />
           </div>
           <div className='space-y-1'>
-            <label htmlFor='date_applied' className='text-sm font-medium'>Date applied</label>
-            <Input id='date_applied' type='date' name='date_applied' defaultValue={editing.date_applied || ''} />
+            <label htmlFor='url_snapshot' className='text-sm font-medium'>Job posting URL</label>
+            <Input id='url_snapshot' name='url_snapshot' type='url' defaultValue={editing.url_snapshot || ''} placeholder='https://company.com/jobs/123' />
+          </div>
+          <div className='space-y-1'>
+            <label htmlFor='stage' className='text-sm font-medium'>Stage</label>
+            <Select id='stage' name='stage' defaultValue={editing.stage || 'Interested'}>
+              {stages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
+            </Select>
           </div>
           <div className='flex gap-2'>
             <Button type='submit'>Save</Button>
-            <Button type='button' variant='danger' onClick={async () => { await api.trackerDelete(editing.id); toast('Tracker item deleted'); setEditing(null); load() }}>Delete</Button>
+            <Button type='button' variant='danger' onClick={async () => { await api.trackerDelete(editing.id); toast('Tracker item deleted'); setEditing(null); await load() }}>Delete</Button>
           </div>
         </form> : null}
       </Modal>
