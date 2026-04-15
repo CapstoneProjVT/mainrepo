@@ -18,6 +18,8 @@ export default function Tracker() {
   const [editing, setEditing] = useState<any | null>(null)
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [dragOverStage, setDragOverStage] = useState<string | null>(null)
+  const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
+  const toggleExpand = (stage: string) => setExpandedStages((prev) => { const next = new Set(prev); next.has(stage) ? next.delete(stage) : next.add(stage); return next })
   const toast = useToast()
   const load = () => api.trackerList().then(setApps)
   useEffect(() => { load() }, [])
@@ -46,7 +48,7 @@ export default function Tracker() {
         <h1>Application tracker</h1>
         <Button onClick={async () => { await api.trackerCreate({ title_snapshot: 'New application', org_snapshot: 'Company', stage: 'Interested' }); toast('Application created'); load() }}>Add application</Button>
       </div>
-      <div className='grid gap-3 xl:grid-cols-3'>
+      <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
         {grouped.map((column) => (
           <Card
             key={column.stage}
@@ -69,40 +71,42 @@ export default function Tracker() {
           >
             <h3 className='mb-3'>{column.stage}</h3>
             <div className='space-y-2'>
-              {column.items.length === 0 ? <EmptyState title='No cards' description='Move an opportunity into this stage.' /> : column.items.map((item) => (
-                <div
-                  key={item.id}
-                  draggable
-                  onDragStart={(e) => {
-                    setDraggingId(item.id)
-                    e.dataTransfer.effectAllowed = 'move'
-                    e.dataTransfer.setData('text/plain', String(item.id))
-                  }}
-                  onDragEnd={() => {
-                    setDraggingId(null)
-                    setDragOverStage(null)
-                  }}
-                  className={`space-y-2 rounded-lg border bg-background p-3 ${draggingId === item.id ? 'opacity-60' : ''}`}
-                >
-                  <p className='font-medium'>{item.title_snapshot}</p>
-                  <p className='text-xs text-muted-foreground'>{item.org_snapshot}</p>
-                  <p className='text-xs text-muted-foreground'>Due: {formatDate(item.deadline_date ?? item.deadline)}</p>
-                  <div className='flex gap-2'>
-                    <Button
-                      size='sm'
-                      variant='secondary'
-                      disabled={!item.url_snapshot}
-                      onClick={() => {
-                        if (!item.url_snapshot) return
-                        window.open(item.url_snapshot, '_blank', 'noopener,noreferrer')
-                      }}
-                    >
-                      Posting
-                    </Button>
-                    <Button size='sm' onClick={() => setEditing(item)}>Details</Button>
+              {column.items.length === 0 ? <EmptyState title='No cards' description='Move an opportunity into this stage.' /> : (() => {
+                const isExpanded = expandedStages.has(column.stage); const visibleItems = isExpanded ? column.items : column.items.slice(0, 3); const hiddenCount = column.items.length - 3; return (<><div className='space-y-2'>{visibleItems.map((item) => (
+                  <div
+                    key={item.id}
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggingId(item.id)
+                      e.dataTransfer.effectAllowed = 'move'
+                      e.dataTransfer.setData('text/plain', String(item.id))
+                    }}
+                    onDragEnd={() => {
+                      setDraggingId(null)
+                      setDragOverStage(null)
+                    }}
+                    className={`space-y-2 rounded-lg border bg-background p-3 ${draggingId === item.id ? 'opacity-60' : ''}`}
+                  >
+                    <p className='font-medium'>{item.title_snapshot}</p>
+                    <p className='text-xs text-muted-foreground'>{item.org_snapshot}</p>
+                    <p className='text-xs text-muted-foreground'>Due: {formatDate(item.deadline_date ?? item.deadline)}</p>
+                    <div className='flex gap-2'>
+                      <Button
+                        size='sm'
+                        variant='secondary'
+                        disabled={!item.url_snapshot}
+                        onClick={() => {
+                          if (!item.url_snapshot) return
+                          window.open(item.url_snapshot, '_blank', 'noopener,noreferrer')
+                        }}
+                      >
+                        Posting
+                      </Button>
+                      <Button size='sm' onClick={() => setEditing(item)}>Details</Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}</div>{column.items.length > 3 && (<button type='button' className='w-full pt-1 text-xs text-muted-foreground hover:text-foreground' onClick={() => toggleExpand(column.stage)}>{isExpanded ? 'See less' : `See ${hiddenCount} more`}</button>)}</>)
+              })()}
             </div>
           </Card>
         ))}
