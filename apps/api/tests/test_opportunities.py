@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import func, select
 
 from app.models.models import Opportunity, RelevanceRating, SavedOpportunity
-from app.routers.admin import seed_if_empty
+from app.routers.admin import resolve_seed_path, seed_if_empty, sync_seed_data
 from app.services.matching import embed_text
 
 
@@ -112,10 +112,72 @@ async def test_auto_seed_only_runs_when_table_empty(db_session, monkeypatch, tmp
     assert total == 1
 
 
+@pytest.mark.asyncio
+async def test_sync_seed_data_upserts_existing_rows(db_session, monkeypatch, tmp_path):
+    initial_rows = [
+        {
+            "title": "Seeded Role",
+            "org": "Seed Org",
+            "description": "Platform engineering internship",
+            "location": "Remote",
+            "tags": ["backend"],
+            "deadline": "2026-01-01",
+            "url": "https://seeded.example/role",
+        }
+    ]
+    updated_rows = [
+        {
+            "title": "Seeded Role",
+            "org": "Seed Org",
+            "description": "Updated internship description",
+            "location": "Remote",
+            "tags": ["backend", "infra"],
+            "deadline": "2026-02-01",
+            "url": "https://seeded.example/role",
+        },
+        {
+            "title": "Second Role",
+            "org": "Another Org",
+            "description": "Frontend internship",
+            "location": "NYC",
+            "tags": ["frontend"],
+            "deadline": "2026-03-01",
+            "url": "https://seeded.example/role-2",
+        },
+    ]
+    seed_path = tmp_path / "seed.json"
+    seed_path.write_text(json.dumps(initial_rows), encoding="utf-8")
+    monkeypatch.setenv("AUTO_SEED_PATH", str(seed_path))
+
+    first = await sync_seed_data(db_session)
+
+    seed_path.write_text(json.dumps(updated_rows), encoding="utf-8")
+    second = await sync_seed_data(db_session)
+
+    total = (await db_session.execute(select(func.count(Opportunity.id)))).scalar()
+    seeded = (
+        await db_session.execute(select(Opportunity).where(Opportunity.url == "https://seeded.example/role"))
+    ).scalar_one()
+
+    assert first == {"inserted": 1, "updated": 0, "failures": []}
+    assert second == {"inserted": 1, "updated": 1, "failures": []}
+    assert total == 2
+    assert seeded.description == "Updated internship description"
+    assert seeded.tags_json == ["backend", "infra"]
+    assert seeded.deadline_date.isoformat() == "2026-02-01"
+
+
 def test_embed_text_is_deterministic():
     first = embed_text("Python backend distributed systems")
     second = embed_text("Python backend distributed systems")
     assert first == second
+
+
+def test_resolve_seed_path_defaults_to_bundled_seed(monkeypatch):
+    monkeypatch.delenv("AUTO_SEED_PATH", raising=False)
+    path = resolve_seed_path()
+    assert path.exists()
+    assert path.as_posix().endswith("/apps/api/data/seed_opportunities.json")
 
 
 @pytest.mark.asyncio

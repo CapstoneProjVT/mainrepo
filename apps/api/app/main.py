@@ -7,7 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.db import SessionLocal, engine
 from app.models.base import Base
 from app.routers import admin, auth, insights, metrics, opportunities, profile, tracker
-from app.routers.admin import seed_if_empty
+from app.routers.admin import sync_seed_data
+
+
+def should_auto_seed() -> bool:
+    configured = os.getenv("AUTO_SEED")
+    if configured is not None:
+        return configured.lower() == "true"
+    return bool(os.getenv("VERCEL") or os.getenv("VERCEL_ENV"))
 
 
 @asynccontextmanager
@@ -17,9 +24,9 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
-        if os.getenv("AUTO_SEED", "false").lower() == "true":
+        if should_auto_seed():
             async with SessionLocal() as session:
-                await seed_if_empty(session)
+                await sync_seed_data(session)
     except Exception as e:
         import logging
         logging.warning(f"Lifespan startup error (may be expected on serverless): {e}")
