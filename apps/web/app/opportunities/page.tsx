@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { api, ApiError } from '../../lib/api'
@@ -26,6 +26,7 @@ type Opportunity = {
   deadline_date: string | null
   match_score: number
   is_saved: boolean
+  url?: string | null
   explanation: { overlap_skills: string[]; snippets: string[] }
 }
 
@@ -57,6 +58,9 @@ export default function Opportunities() {
   const [interviewPrepLoading, setInterviewPrepLoading] = useState(false)
   const [error, setError] = useState('')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [expandedDescription, setExpandedDescription] = useState(false)
+  const descRef = useRef<HTMLParagraphElement | null>(null)
+  const [isTruncated, setIsTruncated] = useState(false)
 
   const syncRoute = (nextSelected?: number | null) => {
     const params = new URLSearchParams()
@@ -137,6 +141,26 @@ export default function Opportunities() {
     run()
   }, [])
 
+  useEffect(() => {
+    const checkTruncation = () => {
+      const el = descRef.current
+      if (!el) {
+        setIsTruncated(false)
+        return
+      }
+      if (expandedDescription) {
+        setIsTruncated(false)
+        return
+      }
+      const truncated = el.scrollHeight > el.clientHeight + 1
+      setIsTruncated(truncated)
+    }
+
+    requestAnimationFrame(checkTruncation)
+    window.addEventListener('resize', checkTruncation)
+    return () => window.removeEventListener('resize', checkTruncation)
+  }, [selected, items, expandedDescription])
+
   const filtered = useMemo(() => {
     const sorted = [...items]
     if (sortBy === 'deadline') sorted.sort((a, b) => (a.deadline_date || '9999').localeCompare(b.deadline_date || '9999'))
@@ -160,19 +184,12 @@ export default function Opportunities() {
     }
   }
 
-  const toggleSave = async (opp: Opportunity) => {
-    try {
-      if (opp.is_saved) {
-        await api.unsaveOpportunity(opp.id)
-        toast('Removed from saved')
-      } else {
-        await api.saveOpportunity(opp.id)
-        toast('Saved to your items')
-      }
-      setItems(items.map(i => i.id === opp.id ? { ...i, is_saved: !i.is_saved } : i))
-    } catch (e) {
-      toast('Failed to update save status')
+  const handleViewJob = (url?: string | null) => {
+    if (!url) {
+      toast('Job posting URL not available')
+      return
     }
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   const generateAIMatch = async (id: number) => {
@@ -220,7 +237,7 @@ export default function Opportunities() {
   }
 
   const detailContent = selectedItem ? (
-    <div className="relative flex flex-col h-[calc(100vh-140px)]">
+    <div className="relative flex flex-col h-[calc(100vh-300px)]">
       <div className="flex-1 overflow-y-auto pr-2">
         <h2 className='text-2xl font-bold tracking-tight mb-2'>{selectedItem.title}</h2>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-6 text-sm text-muted-foreground font-medium">
@@ -267,8 +284,37 @@ export default function Opportunities() {
         </div>
 
         <div className="mb-6">
-          <h3 className="font-semibold text-lg mb-3">About the role</h3>
-          <p className='text-sm leading-relaxed whitespace-pre-wrap text-foreground/90'>{selectedItem.description}</p>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-lg">About the role</h3>
+          </div>
+
+          <div className="flex flex-col">
+            <p ref={descRef} className={`text-sm leading-relaxed whitespace-pre-wrap text-foreground/90 ${!expandedDescription ? 'line-clamp-3' : ''}`}>
+              {selectedItem.description}
+            </p>
+
+            {!expandedDescription && isTruncated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs font-medium mt-2 self-start text-muted-foreground hover:text-primary"
+                onClick={() => setExpandedDescription(true)}
+              >
+                See more
+              </Button>
+            )}
+
+            {expandedDescription && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs font-medium mt-2 self-start text-muted-foreground hover:text-primary"
+                onClick={() => setExpandedDescription(false)}
+              >
+                See less
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="mb-8">
@@ -286,22 +332,23 @@ export default function Opportunities() {
         <div className="flex gap-2 w-full flex-wrap">
           <Button
             className="flex-1 font-semibold shadow-sm"
-            onClick={async () => { await api.trackerCreate({ title_snapshot: selectedItem.title, org_snapshot: selectedItem.org, opportunity_id: selectedItem.id }); toast('Added to tracker') }}
+            onClick={async () => { await api.trackerCreate({ title_snapshot: selectedItem.title, org_snapshot: selectedItem.org, url_snapshot: selectedItem.url, opportunity_id: selectedItem.id }); toast('Added to tracker') }}
           >
             Track
           </Button>
           <Button
-            variant={selectedItem.is_saved ? "secondary" : "outline"}
-            className={selectedItem.is_saved ? "text-primary bg-primary/10 hover:bg-primary/20 flex-1" : "flex-1"}
-            onClick={() => toggleSave(selectedItem)}
+            variant="outline"
+            className="flex-1"
+            disabled={!selectedItem.url}
+            onClick={() => { if (selectedItem.url) window.open(selectedItem.url, '_blank', 'noopener,noreferrer') }}
           >
-            {selectedItem.is_saved ? '★ Saved' : '☆ Save'}
+            View Job
           </Button>
           <Button variant="outline" className="flex-1" onClick={handleCoverLetter}>
-            📝 Draft
+            ✦ Draft&nbsp;
           </Button>
           <Button variant="outline" className="flex-1 bg-background" onClick={handleInterviewPrep}>
-            🎯 Prep
+            ✦ Prep&nbsp;
           </Button>
         </div>
 
@@ -354,21 +401,11 @@ export default function Opportunities() {
           )}
         </div>
 
-        <div className='px-2 pb-2 pt-1 flex flex-wrap items-center gap-3 border-t border-border/50 mt-1'>
+        <div className='px-2 pb-2 pt-2 flex flex-wrap items-center gap-3 border-t border-border/50'>
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1 hidden sm:block">Filters:</span>
 
-          <button
-            className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${savedOnly ? 'bg-primary text-primary-foreground border-primary' : 'bg-transparent text-foreground hover:bg-muted'}`}
-            onClick={() => setSavedOnly((prev) => !prev)}
-            aria-label='Toggle saved only'
-          >
-            {savedOnly ? '★ Saved Only' : '☆ Saved Only'}
-          </button>
-
-          <div className="h-4 w-px bg-border"></div>
-
           <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar flex-1 items-center">
-            {['remote', 'python', 'frontend', 'ml', 'startup'].map((chip) => (
+            {['robotics', 'python', 'frontend', 'backend', 'research'].map((chip) => (
               <button
                 key={chip}
                 className={`flex-shrink-0 focus-ring rounded-full border px-3 py-1 text-xs font-medium transition-colors ${tag === chip ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-muted/30 hover:bg-muted/80'}`}
@@ -449,7 +486,7 @@ export default function Opportunities() {
           </div>
 
           {/* Details Column (Sticky) */}
-          <div className='hidden xl:block h-[calc(100vh-140px)] sticky top-24'>
+          <div className='hidden xl:block h-[calc(100vh-300px)] sticky top-24'>
             <Card className='h-full p-0 overflow-hidden shadow-card border-border relative bg-card'>
               {selectedItem ? detailContent : <div className="h-full flex items-center justify-center p-8 text-center text-muted-foreground"><p>Select a role from the feed to view full details and insights.</p></div>}
             </Card>

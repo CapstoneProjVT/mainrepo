@@ -21,11 +21,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     api.getMe().then((me) => setIsAdmin(me.is_admin)).catch(() => setIsAdmin(false))
   }, [])
 
-  // On landing page show only TopNav, no sidebars
-  if (path === '/') {
+  if (path === '/' || path === '/login' || path === '/signup') {
     return (
       <div className='min-h-screen bg-muted/20'>
-        <TopNav onMenuToggle={() => {}} />
+        <TopNav onMenuToggle={() => { }} />
         {children}
       </div>
     )
@@ -35,7 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className='min-h-screen bg-muted/20'>
       <TopNav onMenuToggle={() => setOpen(true)} />
 
-      <Container className='grid gap-6 pt-6 pb-12 lg:grid-cols-[240px_minmax(0,1fr)_300px]'>
+      <Container className='grid gap-6 pt-6 pb-12 lg:grid-cols-[240px_minmax(0,1fr)_240px]'>
         <LeftRail isAdmin={isAdmin} />
 
         <main className="min-w-0">{children}</main>

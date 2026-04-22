@@ -75,6 +75,10 @@ async def patch_app(app_id: int, payload: AppPatch, user=Depends(get_current_use
         if not org:
             raise HTTPException(status_code=422, detail="org_snapshot cannot be empty")
         a.org_snapshot = org
+    if payload.url_snapshot is not None:
+        a.url_snapshot = payload.url_snapshot.strip() or None
+    if payload.stage is not None:
+        a.stage = payload.stage
     if payload.notes is not None:
         a.notes = payload.notes
     if payload.deadline is not None:
