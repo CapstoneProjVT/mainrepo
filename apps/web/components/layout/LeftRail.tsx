@@ -17,7 +17,7 @@ export function LeftRail({ isAdmin }: { isAdmin: boolean }) {
     const path = usePathname()
 
     return (
-        <aside className='hidden space-y-4 lg:block'>
+        <aside className='hidden space-y-4 lg:block sticky top-20 max-h-[calc(100vh-96px)] overflow-y-auto pr-2'>
             <Card className='p-3 bg-card border-border shadow-sm'>
                 <nav className='space-y-1.5'>
                     {navItems.map((item) => {

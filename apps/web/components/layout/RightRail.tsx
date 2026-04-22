@@ -6,7 +6,7 @@ import { Button } from '../ui/Button'
 
 export function RightRail() {
     return (
-        <div className='hidden lg:flex flex-col space-y-4'>
+        <div className='hidden lg:flex flex-col space-y-4 sticky top-20 max-h-[calc(100vh-96px)] overflow-y-auto'>
             <Card className='p-5 shadow-sm bg-card border-border'>
                 <div className="flex items-center justify-between mb-4">
                     <p className='text-sm font-bold text-foreground'>Network Snapshot</p>
@@ -35,7 +35,7 @@ export function RightRail() {
                     <span className="text-lg opacity-60">🔥</span>
                 </div>
                 <div className='flex flex-wrap gap-2 text-xs'>
-                    {['backend', 'startup', 'typescript', 'remote', 'ml'].map((tag) => (
+                    {['backend', 'research', 'computer-vision', 'robotics', 'design'].map((tag) => (
                         <span
                             key={tag}
                             className='rounded border bg-muted/30 px-2.5 py-1 font-medium text-foreground hover:bg-muted/80 hover:border-border cursor-pointer transition-colors'
