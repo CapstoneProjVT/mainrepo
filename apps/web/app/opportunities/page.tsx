@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { api, ApiError } from '../../lib/api'
@@ -59,6 +59,8 @@ export default function Opportunities() {
   const [error, setError] = useState('')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [expandedDescription, setExpandedDescription] = useState(false)
+  const descRef = useRef<HTMLParagraphElement | null>(null)
+  const [isTruncated, setIsTruncated] = useState(false)
 
   const syncRoute = (nextSelected?: number | null) => {
     const params = new URLSearchParams()
@@ -138,6 +140,26 @@ export default function Opportunities() {
     }
     run()
   }, [])
+
+  useEffect(() => {
+    const checkTruncation = () => {
+      const el = descRef.current
+      if (!el) {
+        setIsTruncated(false)
+        return
+      }
+      if (expandedDescription) {
+        setIsTruncated(false)
+        return
+      }
+      const truncated = el.scrollHeight > el.clientHeight + 1
+      setIsTruncated(truncated)
+    }
+
+    requestAnimationFrame(checkTruncation)
+    window.addEventListener('resize', checkTruncation)
+    return () => window.removeEventListener('resize', checkTruncation)
+  }, [selected, items, expandedDescription])
 
   const filtered = useMemo(() => {
     const sorted = [...items]
@@ -264,20 +286,35 @@ export default function Opportunities() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-lg">About the role</h3>
-            {!expandedDescription && (
-              <Button variant="ghost" size="sm" className="h-6 text-xs font-medium" onClick={() => setExpandedDescription(true)}>
+          </div>
+
+          <div className="flex flex-col">
+            <p ref={descRef} className={`text-sm leading-relaxed whitespace-pre-wrap text-foreground/90 ${!expandedDescription ? 'line-clamp-3' : ''}`}>
+              {selectedItem.description}
+            </p>
+
+            {!expandedDescription && isTruncated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs font-medium mt-2 self-start text-muted-foreground hover:text-primary"
+                onClick={() => setExpandedDescription(true)}
+              >
                 See more
               </Button>
             )}
+
+            {expandedDescription && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs font-medium mt-2 self-start text-muted-foreground hover:text-primary"
+                onClick={() => setExpandedDescription(false)}
+              >
+                See less
+              </Button>
+            )}
           </div>
-          <p className={`text-sm leading-relaxed whitespace-pre-wrap text-foreground/90 ${!expandedDescription ? 'line-clamp-3' : ''}`}>
-            {selectedItem.description}
-          </p>
-          {expandedDescription && (
-            <Button variant="ghost" size="sm" className="h-6 text-xs font-medium mt-2" onClick={() => setExpandedDescription(false)}>
-              See less
-            </Button>
-          )}
         </div>
 
         <div className="mb-8">
