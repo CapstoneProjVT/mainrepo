@@ -26,7 +26,7 @@ export function RightRail() {
                         <span>Keep applying to improve confidence.</span>
                     </li>
                 </ul>
-                <Link href="/tracker"><Button variant="outline" className="w-full mt-4 text-xs font-medium h-8">View Detailed Stats</Button></Link>
+                <Link href="/insights"><Button variant="outline" className="w-full mt-4 text-xs font-medium h-8">View Detailed Stats</Button></Link>
             </Card>
 
             <Card className='p-5 shadow-sm bg-card border-border'>
