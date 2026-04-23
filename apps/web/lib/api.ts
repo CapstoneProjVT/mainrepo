@@ -81,6 +81,8 @@ export const api = {
     return request<any>('/admin/import', { method: 'POST', body: formData })
   },
   scrapeUrl: (url: string) => request<any>('/admin/scrape', { method: 'POST', body: JSON.stringify({ url }) }),
+  upcomingDeadlines: (days?: number) => request<any[]>(`/notifications/upcoming-deadlines${days ? `?days=${days}` : ''}`),
+  sendDeadlineReminder: () => request<{ sent: boolean; count?: number; reason?: string }>('/notifications/send-deadline-reminder', { method: 'POST' }),
   mlMatch: (id: number | string) => request<any>(`/opportunities/${id}/ml-match`),
   generateCoverLetter: (id: number | string) => request<any>(`/opportunities/${id}/cover-letter`),
   generateInterviewPrep: (id: number | string) => request<any>(`/opportunities/${id}/interview-prep`),

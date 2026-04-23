@@ -7,7 +7,7 @@ import { api, ApiError } from '../../lib/api'
 import { formatDate } from '../../lib/utils'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
-import { Card, Section } from '../../components/ui/Card'
+import { Card } from '../../components/ui/Card'
 import { Drawer } from '../../components/ui/Drawer'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { Modal } from '../../components/ui/Modal'
@@ -57,6 +57,7 @@ export default function Opportunities() {
   const [interviewPrepLoading, setInterviewPrepLoading] = useState(false)
   const [error, setError] = useState('')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [savedCount, setSavedCount] = useState(0)
 
   const syncRoute = (nextSelected?: number | null) => {
     const params = new URLSearchParams()
@@ -79,6 +80,7 @@ export default function Opportunities() {
       if (savedOnly) params.set('saved_only', 'true')
       const data = await api.listOpportunities(params.size ? `?${params.toString()}` : '')
       setItems(data)
+      setSavedCount(data.filter((item) => item.is_saved).length)
       const initial = data.find((item) => item.id === selectedFromUrl)?.id || data[0]?.id || null
       setSelected(initial)
       syncRoute(initial)
@@ -125,6 +127,7 @@ export default function Opportunities() {
         if (initialSavedOnly) routeParams.set('saved_only', 'true')
         const data = await api.listOpportunities(routeParams.size ? `?${routeParams.toString()}` : '')
         setItems(data)
+        setSavedCount(data.filter((item) => item.is_saved).length)
         const initial = data.find((item) => item.id === initialSelected)?.id || data[0]?.id || null
         setSelected(initial)
       } catch (e: any) {
@@ -170,6 +173,7 @@ export default function Opportunities() {
         toast('Saved to your items')
       }
       setItems(items.map(i => i.id === opp.id ? { ...i, is_saved: !i.is_saved } : i))
+      setSavedCount((c) => opp.is_saved ? c - 1 : c + 1)
     } catch (e) {
       toast('Failed to update save status')
     }
@@ -359,10 +363,28 @@ export default function Opportunities() {
 
           <button
             className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${savedOnly ? 'bg-primary text-primary-foreground border-primary' : 'bg-transparent text-foreground hover:bg-muted'}`}
-            onClick={() => setSavedOnly((prev) => !prev)}
+            onClick={() => {
+              const next = !savedOnly
+              setSavedOnly(next)
+              const params = new URLSearchParams()
+              if (q) params.set('query', q)
+              if (location) params.set('location', location)
+              if (tag) params.set('tag', tag)
+              if (next) params.set('saved_only', 'true')
+              setLoading(true)
+              setError('')
+              api.listOpportunities(params.size ? `?${params.toString()}` : '').then((data) => {
+                setItems(data)
+                setSavedCount(data.filter((i) => i.is_saved).length)
+                setSelected(data[0]?.id || null)
+              }).catch((e: any) => {
+                setItems([])
+                setError(e.message || 'Unable to reach API. Please retry.')
+              }).finally(() => setLoading(false))
+            }}
             aria-label='Toggle saved only'
           >
-            {savedOnly ? '★ Saved Only' : '☆ Saved Only'}
+            {savedOnly ? '★ Saved Only' : `☆ Saved${savedCount > 0 ? ` (${savedCount})` : ''}`}
           </button>
 
           <div className="h-4 w-px bg-border"></div>

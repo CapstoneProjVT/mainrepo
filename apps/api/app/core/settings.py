@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     vector_backend: str = "auto"
     gemini_api_key: str = ""
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_pass: str = ""
+    smtp_from: str = ""
 
     model_config = SettingsConfigDict(env_file="../../.env", extra="ignore")
 
