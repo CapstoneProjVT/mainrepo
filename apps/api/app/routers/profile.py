@@ -1,5 +1,4 @@
-import io
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_db
@@ -8,8 +7,6 @@ from app.routers.deps import get_current_user
 from app.schemas.common import ProfileIn
 
 router = APIRouter(tags=["profile"])
-
-MAX_RESUME_BYTES = 5 * 1024 * 1024  # 5 MB
 
 
 @router.get("/me")
@@ -20,13 +17,7 @@ async def me(user=Depends(get_current_user)):
 @router.get("/me/profile")
 async def get_profile(user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     p = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalar_one()
-    return {
-        "skills": p.skills_json,
-        "interests": p.interests_text,
-        "locations": p.locations_json,
-        "grad_year": p.grad_year,
-        "has_resume": bool(p.resume_text),
-    }
+    return {"skills": p.skills_json, "interests": p.interests_text, "locations": p.locations_json, "grad_year": p.grad_year}
 
 
 @router.put("/me/profile")
@@ -38,40 +29,3 @@ async def put_profile(payload: ProfileIn, user=Depends(get_current_user), db: As
     p.grad_year = payload.grad_year
     await db.commit()
     return payload
-
-
-@router.post("/me/resume")
-async def upload_resume(
-    file: UploadFile = File(...),
-    user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    if not file.filename or not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
-
-    content = await file.read()
-    if len(content) > MAX_RESUME_BYTES:
-        raise HTTPException(status_code=400, detail="File exceeds 5 MB limit")
-
-    try:
-        from pypdf import PdfReader
-        reader = PdfReader(io.BytesIO(content))
-        text = "\n".join(page.extract_text() or "" for page in reader.pages).strip()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Could not parse PDF — make sure it contains selectable text")
-
-    if not text:
-        raise HTTPException(status_code=400, detail="No text found in PDF — make sure it's not a scanned image")
-
-    p = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalar_one()
-    p.resume_text = text
-    await db.commit()
-    return {"ok": True, "characters": len(text)}
-
-
-@router.delete("/me/resume")
-async def delete_resume(user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    p = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalar_one()
-    p.resume_text = None
-    await db.commit()
-    return {"ok": True}
