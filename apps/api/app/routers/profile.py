@@ -1,6 +1,5 @@
 import io
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from pypdf import PdfReader
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_db
@@ -54,6 +53,11 @@ async def upload_resume(
     content = await file.read()
     if len(content) > MAX_RESUME_BYTES:
         raise HTTPException(status_code=400, detail="File exceeds 5 MB limit")
+
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        raise HTTPException(status_code=500, detail="pypdf is not installed — check server dependencies")
 
     try:
         reader = PdfReader(io.BytesIO(content))
