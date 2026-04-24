@@ -14,7 +14,7 @@ async def test_profile_put_get_roundtrip(authed_client):
 
     profile = await authed_client.get("/me/profile")
     assert profile.status_code == 200
-    assert profile.json() == payload
+    assert profile.json() == {**payload, "has_resume": False}
 
 
 @pytest.mark.asyncio

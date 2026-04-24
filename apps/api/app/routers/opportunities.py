@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_db
-from app.models.models import Event, Opportunity, Profile, RelevanceRating, SavedOpportunity
+from app.models.models import Event, Opportunity, Profile, RelevanceRating, Resume, SavedOpportunity
 from app.routers.deps import get_current_user
 from app.schemas.common import RatingIn
 from app.services.matching import (
@@ -29,7 +29,9 @@ async def _explain(db, user, opps):
         db.add(profile)
         await db.flush()
         await db.commit()
-    user_emb = embed_text(user_profile_text(profile))
+    resume = (await db.execute(select(Resume).where(Resume.user_id == user.id))).scalar_one_or_none()
+    resume_text = resume.resume_text if resume else ""
+    user_emb = embed_text(user_profile_text(profile, resume_text))
     user_skills = profile.skills_json or []
     
     saved_ids = set((await db.execute(select(SavedOpportunity.opportunity_id).where(SavedOpportunity.user_id == user.id))).scalars().all())
