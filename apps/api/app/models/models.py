@@ -91,3 +91,11 @@ class RelevanceRating(Base):
     opportunity_id: Mapped[int] = mapped_column(ForeignKey("opportunities.id"))
     rating: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class Resume(Base):
+    __tablename__ = "resumes"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    resume_text: Mapped[str] = mapped_column(Text)
+    filename: Mapped[str] = mapped_column(String(255))
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
