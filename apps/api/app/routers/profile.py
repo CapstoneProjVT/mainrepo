@@ -1,5 +1,6 @@
 import io
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from pypdf import PdfReader
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_db
@@ -55,11 +56,10 @@ async def upload_resume(
         raise HTTPException(status_code=400, detail="File exceeds 5 MB limit")
 
     try:
-        from pypdf import PdfReader
         reader = PdfReader(io.BytesIO(content))
         text = "\n".join(page.extract_text() or "" for page in reader.pages).strip()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Could not parse PDF — make sure it contains selectable text")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not parse PDF: {e}")
 
     if not text:
         raise HTTPException(status_code=400, detail="No text found in PDF — make sure it's not a scanned image")
