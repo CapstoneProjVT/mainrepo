@@ -60,7 +60,11 @@ def snippets(description: str, terms: list[str]) -> list[str]:
 
 
 def user_profile_text(profile) -> str:
-    return " ".join(profile.skills_json or []) + " " + (profile.interests_text or "") + " " + " ".join(profile.locations_json or [])
+    base = " ".join(profile.skills_json or []) + " " + (profile.interests_text or "") + " " + " ".join(profile.locations_json or [])
+    resume = getattr(profile, "resume_text", None)
+    if resume:
+        return resume + " " + base
+    return base
 
 
 def opportunity_text(opp) -> str:

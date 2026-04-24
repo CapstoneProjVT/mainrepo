@@ -33,6 +33,7 @@ class Profile(Base):
     interests_text: Mapped[str] = mapped_column(Text, default="")
     locations_json: Mapped[list] = mapped_column(JSON, default=list)
     grad_year: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    resume_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
 
 class Opportunity(Base):
