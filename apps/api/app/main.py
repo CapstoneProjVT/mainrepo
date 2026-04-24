@@ -2,6 +2,7 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.db import SessionLocal, engine
@@ -23,6 +24,7 @@ async def lifespan(app: FastAPI):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            await conn.execute(text("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS resume_text TEXT"))
 
         if should_auto_seed():
             async with SessionLocal() as session:
