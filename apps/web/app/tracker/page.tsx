@@ -35,6 +35,7 @@ export default function Tracker() {
     if (notesTimer.current) clearTimeout(notesTimer.current)
     notesTimer.current = setTimeout(async () => {
       await api.trackerPatch(editing.id, { notes: notesValue })
+      setApps((prev) => prev.map((a) => a.id === editing.id ? { ...a, notes: notesValue } : a))
       setNotesSaved(true)
     }, 800)
     return () => { if (notesTimer.current) clearTimeout(notesTimer.current) }
