@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -19,10 +19,26 @@ export default function Tracker() {
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [dragOverStage, setDragOverStage] = useState<string | null>(null)
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
+  const [notesValue, setNotesValue] = useState('')
+  const [notesSaved, setNotesSaved] = useState(true)
+  const notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const toggleExpand = (stage: string) => setExpandedStages((prev) => { const next = new Set(prev); next.has(stage) ? next.delete(stage) : next.add(stage); return next })
   const toast = useToast()
   const load = () => api.trackerList().then(setApps)
   useEffect(() => { load() }, [])
+
+  useEffect(() => { setNotesValue(editing?.notes || '') }, [editing?.id])
+
+  useEffect(() => {
+    if (!editing) return
+    setNotesSaved(false)
+    if (notesTimer.current) clearTimeout(notesTimer.current)
+    notesTimer.current = setTimeout(async () => {
+      await api.trackerPatch(editing.id, { notes: notesValue })
+      setNotesSaved(true)
+    }, 800)
+    return () => { if (notesTimer.current) clearTimeout(notesTimer.current) }
+  }, [notesValue])
 
   const sortApps = (items: any[]) => [...items].sort((a, b) => {
     const dateA = a.deadline_date ?? a.deadline
@@ -169,8 +185,11 @@ export default function Tracker() {
               <Input id='org_snapshot' name='org_snapshot' defaultValue={editing.org_snapshot || ''} placeholder='Company name' />
             </div>
             <div className='space-y-1'>
-              <label htmlFor='notes' className='text-sm font-medium'>Notes</label>
-              <Textarea id='notes' name='notes' defaultValue={editing.notes || ''} placeholder='Notes' />
+              <div className='flex items-center justify-between'>
+                <label htmlFor='notes' className='text-sm font-medium'>Notes</label>
+                <span className='text-xs text-muted-foreground'>{notesSaved ? 'Saved' : 'Saving…'}</span>
+              </div>
+              <Textarea id='notes' name='notes' value={notesValue} onChange={(e) => setNotesValue(e.target.value)} placeholder='Notes' />
             </div>
             <div className='space-y-1'>
               <label htmlFor='deadline' className='text-sm font-medium'>Deadline</label>
