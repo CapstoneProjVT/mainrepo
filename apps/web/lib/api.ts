@@ -81,6 +81,12 @@ export const api = {
     return request<any>('/admin/import', { method: 'POST', body: formData })
   },
   scrapeUrl: (url: string) => request<any>('/admin/scrape', { method: 'POST', body: JSON.stringify({ url }) }),
+  uploadResume: (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return request<{ ok: boolean; characters: number }>('/me/resume', { method: 'POST', body: formData })
+  },
+  deleteResume: () => request<{ ok: boolean }>('/me/resume', { method: 'DELETE' }),
   mlMatch: (id: number | string) => request<any>(`/opportunities/${id}/ml-match`),
   generateCoverLetter: (id: number | string) => request<any>(`/opportunities/${id}/cover-letter`),
   generateInterviewPrep: (id: number | string) => request<any>(`/opportunities/${id}/interview-prep`),
