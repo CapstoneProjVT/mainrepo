@@ -30,6 +30,12 @@ type Opportunity = {
   explanation: { overlap_skills: string[]; snippets: string[] }
 }
 
+function daysUntil(dateStr: string | null): number | null {
+  if (!dateStr) return null
+  const diff = new Date(dateStr).getTime() - new Date().setHours(0, 0, 0, 0)
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
+
 const sortOptions = [
   { value: 'match', label: 'Best match' },
   { value: 'deadline', label: 'Deadline soonest' },
@@ -437,6 +443,9 @@ export default function Opportunities() {
           <div className='space-y-3 pb-8'>
             {filtered.map((item) => {
               const active = item.id === selected
+              const days = daysUntil(item.deadline_date)
+              const deadlineSoon = days !== null && days >= 0 && days <= 7
+              const deadlineText = days === 0 ? 'Due today' : days === 1 ? 'Due tomorrow' : `${days}d left`
               return (
                 <Card
                   key={item.id}
@@ -453,7 +462,15 @@ export default function Opportunities() {
                     </div>
                   )}
 
-                  <div className='flex items-start justify-between gap-4 mb-3'>
+                  {deadlineSoon && (
+                    <div className="absolute top-3 left-3">
+                      <span className="text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full">
+                        ⏰ {deadlineText}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className={`flex items-start justify-between gap-4 mb-3 ${deadlineSoon ? 'mt-6' : ''}`}>
                     <div>
                       <h3 className='font-bold text-lg text-foreground group-hover:text-primary transition-colors pr-8'>{item.title}</h3>
                       <p className='text-sm font-medium text-foreground/80 mt-1'>
