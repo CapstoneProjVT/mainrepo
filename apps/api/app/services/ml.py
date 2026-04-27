@@ -152,6 +152,42 @@ async def generate_interview_prep(profile_text: str, opportunity_text: str) -> d
     except Exception as e:
         raise Exception(f"Failed to generate interview prep: {str(e)}")
 
+async def parse_resume(resume_text: str) -> dict:
+    try:
+        client = genai.Client(api_key=settings.gemini_api_key)
+        prompt = f"""
+        Extract structured profile information from this resume text.
+        Return ONLY valid JSON matching this exact schema:
+        {{
+            "skills": ["list", "of", "technical", "skills"],
+            "interests": "A 1-2 sentence summary of the candidate's interests and career goals",
+            "locations": ["Preferred location 1", "Preferred location 2"],
+            "grad_year": <4-digit graduation year as integer, or null if not found>
+        }}
+
+        Rules:
+        - skills: extract specific technical skills, tools, languages, and frameworks (max 20)
+        - interests: infer from their experience and projects, keep it concise
+        - locations: infer from their current location or stated preferences, or return []
+        - grad_year: look for graduation date or expected graduation
+
+        Resume:
+        {resume_text[:8000]}
+        """
+        def call_gemini():
+            return client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=genai.types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
+            )
+        response = await asyncio.to_thread(call_gemini)
+        return json.loads(response.text)
+    except Exception as e:
+        raise Exception(f"Failed to parse resume: {str(e)}")
+
+
 async def extract_tags(description: str) -> list[str]:
     try:
         if not description or len(description) < 10:
