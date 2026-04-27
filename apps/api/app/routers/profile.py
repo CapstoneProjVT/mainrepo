@@ -70,8 +70,21 @@ async def upload_resume(
         existing.filename = file.filename
     else:
         db.add(Resume(user_id=user.id, resume_text=text, filename=file.filename))
+
+    try:
+        from app.services.ml import parse_resume
+        parsed = await parse_resume(text)
+        p = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalar_one()
+        p.skills_json = parsed.get("skills") or p.skills_json
+        p.interests_text = parsed.get("interests") or p.interests_text
+        p.locations_json = parsed.get("locations") or p.locations_json
+        if parsed.get("grad_year"):
+            p.grad_year = parsed["grad_year"]
+    except Exception:
+        parsed = {}
+
     await db.commit()
-    return {"ok": True, "characters": len(text)}
+    return {"ok": True, "characters": len(text), "autofilled": bool(parsed)}
 
 
 @router.delete("/me/resume")

@@ -84,7 +84,7 @@ export const api = {
   uploadResume: (file: File) => {
     const formData = new FormData()
     formData.append('file', file)
-    return request<{ ok: boolean; characters: number }>('/me/resume', { method: 'POST', body: formData })
+    return request<{ ok: boolean; characters: number; autofilled: boolean }>('/me/resume', { method: 'POST', body: formData })
   },
   deleteResume: () => request('/me/resume', { method: 'DELETE' }),
   mlMatch: (id: number | string) => request<any>(`/opportunities/${id}/ml-match`),

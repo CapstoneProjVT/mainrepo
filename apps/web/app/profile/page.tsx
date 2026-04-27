@@ -42,9 +42,18 @@ export default function Profile() {
     if (!file) return
     setUploading(true)
     try {
-      await api.uploadResume(file)
+      const result = await api.uploadResume(file)
       setHasResume(true)
-      toast('Resume uploaded')
+      if (result.autofilled) {
+        const profile = await api.getProfile()
+        setSkills(profile.skills || [])
+        setInterests(profile.interests || '')
+        setLocations((profile.locations || []).join(', '))
+        setGradYear(profile.grad_year ? String(profile.grad_year) : '')
+        toast('Resume uploaded — profile auto-filled from your resume')
+      } else {
+        toast('Resume uploaded')
+      }
     } catch (err: any) {
       toast(err.message || 'Upload failed')
     } finally {
